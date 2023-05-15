@@ -7,3 +7,4 @@ Documentation:
 - https://developer.mozilla.org/en-US/docs/Learn/Common_questions/Web_mechanics/What_is_a_web_server
 - https://www.ietf.org/rfc/rfc2616.txt
 - https://bruinsslot.jp/post/simple-http-webserver-in-c/
+- https://beej.us/guide/bgnet/html/#client-server-background
