@@ -121,14 +121,22 @@ int main(void)
 			s, sizeof s);
 		printf("server: got connection from %s\n", s);
 
-		if (!fork()) { // this is the child process
+		/*if (!fork()) { // this is the child process
 			close(sockfd); // child doesn't need the listener
-			if (send(new_fd, "Hello, world!", 13, 0) == -1)
+			if (send(new_fd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 13\n\nHello world!", 13, 0) == -1)
 				perror("send");
 			close(new_fd);
 			exit(0);
 		}
-		close(new_fd);  // parent doesn't need this
+		close(new_fd);  // parent doesn't need this*/
+		long valread;
+		char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+		char buffer[30000] = {0};
+		valread = read(new_fd, buffer, 30000);
+		printf("%s\n", buffer );
+		write(new_fd, hello, strlen(hello));
+		printf("------------------Hello message sent-------------------");
+		close(new_fd);
 	}
 
 	return 0;
