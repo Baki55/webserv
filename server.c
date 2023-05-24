@@ -107,7 +107,7 @@ int main(void)
 		exit(1);
 	}
 
-	printf("server: waiting for connections...\n");
+	printf("\nserver: waiting for connections...\n\n");
 
 	while(1) {  // main accept() loop
 		sin_size = sizeof their_addr;
@@ -116,19 +116,27 @@ int main(void)
 			perror("accept");
 			continue;
 		}
-
-		inet_ntop(their_addr.ss_family,
-			get_in_addr((struct sockaddr *)&their_addr),
-			s, sizeof s);
+		
+		FILE *fptr;
+		char c;
+		int i = 0;
+		fptr = fopen("test.html", "r");
+		{
+			c = fgetc(fptr);
+			i++;
+		}while(c != EOF);
+		printf("len file: %d\n", i);
+		
+		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
 		printf("server: got connection from %s\n\n", s);
-
+		char rbuffer[30000] = {0};
+		req = read(new_fd, rbuffer, 1024);
+		char *response = "HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\nContent-Length: 72\nServer: Baki/plain\n\n";
 		if (!fork()) { // this is the child process
 			close(sockfd); // child doesn't need the listener
-			if (send(new_fd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 13\n\nHello world!", 13, 0) == -1)
+			if (send(new_fd, response, i, 0) == -1)
 				perror("send");
-			char buffer[30000] = {0};
-			req = read(new_fd, buffer, 30000);
-			printf("%s\n", buffer);
+			printf("%s\n", rbuffer);
 			close(new_fd);
 			exit(0);
 		}
