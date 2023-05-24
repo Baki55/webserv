@@ -52,6 +52,7 @@ int main(void)
 	int yes=1;
 	char s[INET6_ADDRSTRLEN];
 	int rv;
+	long req;
 
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
@@ -119,24 +120,19 @@ int main(void)
 		inet_ntop(their_addr.ss_family,
 			get_in_addr((struct sockaddr *)&their_addr),
 			s, sizeof s);
-		printf("server: got connection from %s\n", s);
+		printf("server: got connection from %s\n\n", s);
 
-		/*if (!fork()) { // this is the child process
+		if (!fork()) { // this is the child process
 			close(sockfd); // child doesn't need the listener
 			if (send(new_fd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 13\n\nHello world!", 13, 0) == -1)
 				perror("send");
+			char buffer[30000] = {0};
+			req = read(new_fd, buffer, 30000);
+			printf("%s\n", buffer);
 			close(new_fd);
 			exit(0);
 		}
-		close(new_fd);  // parent doesn't need this*/
-		long valread;
-		char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
-		char buffer[30000] = {0};
-		valread = read(new_fd, buffer, 30000);
-		printf("%s\n", buffer );
-		write(new_fd, hello, strlen(hello));
-		printf("------------------Hello message sent-------------------");
-		close(new_fd);
+		close(new_fd);  // parent doesn't need this
 	}
 
 	return 0;
