@@ -119,16 +119,15 @@ int main(void)
 			continue;
 		}
 		
-		char *filecontent = read_file("test.html"); //to free
-		
-		
 		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
 		printf("server: got connection from %s\n\n", s);
+		
 		char rbuffer[30000] = {0};
 		req = read(new_fd, rbuffer, 1024);
+		printf("%s\n", rbuffer);
+
+		char *filecontent = read_file("test.html");
 		char *response = "HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\nContent-Length: 71\nServer: Baki/plain\n\n";
-
-
 		char *htmlresponse = malloc(sizeof(char) * (strlen(response) + strlen(filecontent) + 1));
 		htmlresponse = strcat(htmlresponse, response);
 		htmlresponse = strcat(htmlresponse, filecontent);
@@ -137,7 +136,6 @@ int main(void)
 			close(sockfd); // child doesn't need the listener
 			if (send(new_fd, htmlresponse, strlen(htmlresponse), 0) == -1)
 				perror("send");
-			printf("%s\n", rbuffer);
 			close(new_fd);
 			exit(0);
 		}
