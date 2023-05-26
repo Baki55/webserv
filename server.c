@@ -19,6 +19,8 @@
 
 #define BACKLOG 10	 // how many pending connections queue will hold
 
+char *read_file(char *filename);
+
 void sigchld_handler(int s)
 {
 	(void)s; // quiet unused variable warning
@@ -117,32 +119,59 @@ int main(void)
 			continue;
 		}
 		
-		FILE *fptr;
-		char c;
-		int i = 0;
-		fptr = fopen("test.html", "r");
-		{
-			c = fgetc(fptr);
-			i++;
-		}while(c != EOF);
-		printf("len file: %d\n", i);
+		char *filecontent = read_file("test.html"); //to free
+		
 		
 		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
 		printf("server: got connection from %s\n\n", s);
 		char rbuffer[30000] = {0};
 		req = read(new_fd, rbuffer, 1024);
-		char *response = "HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\nContent-Length: 72\nServer: Baki/plain\n\n";
+		char *response = "HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\nContent-Length: 71\nServer: Baki/plain\n\n";
+
+
+		char *htmlresponse = malloc(sizeof(char) * (strlen(response) + strlen(filecontent) + 1));
+		htmlresponse = strcat(htmlresponse, response);
+		htmlresponse = strcat(htmlresponse, filecontent);
+
 		if (!fork()) { // this is the child process
 			close(sockfd); // child doesn't need the listener
-			if (send(new_fd, response, i, 0) == -1)
+			if (send(new_fd, htmlresponse, strlen(htmlresponse), 0) == -1)
 				perror("send");
 			printf("%s\n", rbuffer);
 			close(new_fd);
 			exit(0);
 		}
 		close(new_fd);  // parent doesn't need this
+		free(filecontent);
+		free(htmlresponse);
 	}
-
 	return 0;
+}
+
+char *read_file(char *filename)
+{
+	FILE *file;
+
+	file = fopen(filename, "r");
+
+	if(file == NULL) return NULL;
+
+	fseek(file, 0, SEEK_END);
+	int len = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	char *str = malloc(sizeof(char) * (len + 1));
+
+	char c;
+	int i = 0;
+	while((c = fgetc(file)) != EOF)
+	{
+		str[i] = c;
+		i++;
+	}
+	str[i] = '\0';
+	fclose(file);
+
+	return(str);
 }
 
